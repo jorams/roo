@@ -11,6 +11,7 @@
      (:head
        (:title ,title)
        (:link :rel "stylesheet" :type "text/css" :href "/static/style.css")
+       (:link :rel "shortcut icon" :type "image/x-icon" :href "/favicon.ico")
        (:meta :name "viewport" :content "initial-scale=1")
        ,@head-tags)
      (:body 

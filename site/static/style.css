@@ -75,6 +75,7 @@ span.twitter-typeahead {
 input {
     width: 100%;
     padding: 10px;
+    margin: 0;
     border: none;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -133,10 +134,18 @@ p.center {
 
 footer {
     color: #516363;
-    text-align: right;
     margin-top: 2em;
 }
 
 footer a {
     color: #516363;
+}
+
+footer .left {
+    float: left;
+}
+
+footer .right {
+    float: right;
+    text-align: right;
 }

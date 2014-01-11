@@ -21,7 +21,7 @@
       (let* ((date (or (getf *route-params* :date)
                        (roo-parser:datestring)))
              (appointments (roo-parser:get-appointments class date)))
-        (schedule appointments proper-name))
+        (schedule appointments proper-name (roo-parser:raw-url class date)))
       (class-not-found))))
 
 (map-routes 

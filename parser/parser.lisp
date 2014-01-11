@@ -86,12 +86,15 @@
                                             "viewModel.dojoObjects" 
                                             json))))))))
 
+(defun raw-url (class date)
+  (concatenate 'string *base-url* "&id=" (write-to-string class)
+                            "&ajaxCommand=renderTimetable&date=" date))
+
 (defun rooster-dom (id &optional date)
   "Returns the schedule of the class with the supplied id at the specified
    date. If no date is specified the server will use the current date"
   (caramel:html-resource
-   (request-url (concatenate 'string *base-url* "&id=" (write-to-string id)
-                            "&ajaxCommand=renderTimetable&date=" date))))
+   (request-url (raw-url id date))))
 
 (defun class-id (name)
   "Returns the id associated with the class name. Also returns as a second

@@ -4,7 +4,7 @@
   `(with-output-to-string (*html*)
      ,@body))
 
-(defmacro main-view (content &key (title "Roo") head-tags)
+(defmacro main-view (content &key (title "Roo") head-tags footer)
   `(with-html 
      (:doctype)
      (:html
@@ -18,7 +18,9 @@
        (:header
          (:a :href "/" (:img.logo :src "/static/logo.svg")))
        ,@content
-       (:footer ("Roo is [open source.](https://github.com/jorams/roo)"))))))
+       (:footer 
+         (if ,footer (:span.left ,footer))
+         (:span.right ("Roo is [open source.](https://github.com/jorams/roo)")))))))
 
 (defun lesson (lesson)
   (with-accessors ((teacher roo-parser:teacher)
@@ -52,12 +54,13 @@
                                               :key #'roo-parser:date)))
              (day date day-appointments))))
 
-(defun schedule (appointments class)
+(defun schedule (appointments class &optional raw-url)
   (render (main-view
             ((if appointments
                (days appointments)
                (:p.center "You are looking at the inside of a rooster. An empty one.")))
-              :title (format NIL "Rooster ~A - Roo" class))))
+              :title (format NIL "Rooster ~A - Roo" class)
+              :footer (with-html (:a :href raw-url "Raw")))))
 
 (defun class-input ()
   (with-html 

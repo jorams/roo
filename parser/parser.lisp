@@ -58,7 +58,7 @@
   (if (ppcre:scan "[0-9]{8}" datestring)
     datestring
     (let ((today (local-time:today)))
-      (local-time:format-timestring NIL today :format '(:year :month :day)))))
+      (local-time:format-timestring NIL today :format '((:year 4) (:month 2) (:day 2))))))
 
 (defun datestring->timestamp (datestring)
   "Converts a `datestring` to a local-time timestamp"

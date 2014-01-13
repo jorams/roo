@@ -40,7 +40,7 @@ Roo is divided into two packages, roo-site and roo-parser.
 
 - There is no caching, every time someone requests a schedule Roo goes out and fetches it from the official site.
 - roo-site doesn't serve static files, so it has to run behind something like Nginx to look pretty.
-- It is currently not possible to get the schedule for a specific week in a user-friendly way. It's possible to append a date in the format /YYYYMMDD to the end of the schedule for a certain class, but that's not a nice way to go about it.
+- It is currently not possible to get the schedule for a specific week in a user-friendly way. It's possible to append a date in the format /YYYYMMDD to the end of the schedule for a certain class, but that's not a nice way to go about it. (note: there are now buttons to go to the next- and previous week, so this has been improved somewhat.)
 - The code isn't as clean and well-organized as I'd like it to be.
 
 ## Notes

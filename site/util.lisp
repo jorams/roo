@@ -6,7 +6,7 @@
 (defgeneric name-of-day (date))
 
 (defmethod name-of-day ((date local-time:timestamp))
-  (nth (local-time:timestamp-day-of-week date)
+  (nth (1- (local-time:timestamp-day-of-week date))
        *day-names*))
 
 (defmethod name-of-day (date)

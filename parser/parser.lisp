@@ -111,7 +111,9 @@
 
 (defun text (domelem)
   "Returns the text contained within a node, roughly."
-  (caramel:get-content (car (caramel:get-content domelem))))
+  (if domelem
+    (caramel:get-content (car (caramel:get-content domelem)))
+    ""))
 
 (defun create-appointment (ldom)
   "Turns an appointment DOM element into an instance of APPOINTMENT"
@@ -124,17 +126,18 @@
                    :end (text end-time)
                    :date date
                    :lessons
-                   (loop for class in (caramel:select ".Z_0_0" ldom)
-                         for teacher in (caramel:select ".Z_1_0" ldom)
-                         for course in (caramel:select ".Z_2_0" ldom)
-                         for location in (caramel:select ".Z_2_1" ldom)
-                         for subject in (caramel:select ".Z_3_0" ldom)
+                   (loop for (class . classcdr) = (caramel:select ".Z_0_0" ldom) then classcdr
+                         for (teacher . teachercdr) = (caramel:select ".Z_1_0" ldom) then teachercdr
+                         for (course . coursecdr) = (caramel:select ".Z_2_0" ldom) then coursecdr
+                         for (location . locationcdr) = (caramel:select ".Z_2_1, .Z_s" ldom) then locationcdr
+                         for (subject . subjectcdr) = (caramel:select ".Z_3_0" ldom) then subjectcdr
                          collect (make-instance 'lesson
                                                 :class (text class)
                                                 :teacher (text teacher)
                                                 :course (text course)
                                                 :location (text location)
-                                                :subject (text subject))))))
+                                                :subject (text subject))
+                         while (or classcdr teachercdr coursecdr locationcdr subjectcdr)))))
 
 (defun get-appointments (id &optional date)
   "Returns a list of lessons for the class with the specified id. If the

@@ -39,6 +39,18 @@ li.lesson:nth-child(even) {
     background-color: rgba(227,174,87,0.4);
 }
 
+.prev-next {
+    text-align: center;
+    padding: 5px;
+    margin:10px;
+    color: white;
+}
+
+.prev-next a {
+    color: white;
+    text-decoration: none;
+}
+
 .time {
     text-align: center;
     background-color: #E3AE57;
@@ -85,6 +97,14 @@ input {
 input[type="submit"] {
     border-radius: 0 0 5px 5px;
     background-color: #EDEDED;
+}
+
+input[type="submit"]:hover {
+    background-color: #E8E8E8;
+}
+
+input[type="submit"]:active {
+    background-color: #CCC;
 }
 
 .tt-dropdown-menu {

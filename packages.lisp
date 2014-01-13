@@ -9,6 +9,7 @@
            :amsterdam
            :datestring
            :datestring->timestamp
+           :timestamp->datestring
            :raw-url
 
            :subject

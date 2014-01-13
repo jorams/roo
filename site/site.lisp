@@ -2,6 +2,9 @@
 
 (defvar *server*)
 
+(defvar *proper-class-name*)
+(defvar *datestring*)
+
 (defun index-route ()
   (index))
 
@@ -20,8 +23,10 @@
     (if class
       (let* ((date (or (getf *route-params* :date)
                        (roo-parser:datestring)))
-             (appointments (roo-parser:get-appointments class date)))
-        (schedule appointments proper-name (roo-parser:raw-url class date)))
+             (appointments (roo-parser:get-appointments class date))
+             (*proper-class-name* proper-name)
+             (*datestring* date))
+        (render-schedule appointments proper-name (roo-parser:raw-url class date)))
       (class-not-found))))
 
 (map-routes 

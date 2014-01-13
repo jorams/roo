@@ -52,23 +52,26 @@
                         ,@params
                         :cookie-jar *cookie-jar*))
 
+(defun timestamp->datestring (timestamp)
+  "Converts a timestamp to a `datestring`"
+  (local-time:format-timestring NIL timestamp :format '((:year 4) (:month 2) (:day 2))))
+
 (defun datestring (&optional datestring)
   "If datestring is supplied and looks like a valid datestring (8 numbers),
    returns datestring. Otherwise returns a datestring of the current date"
   (if (ppcre:scan "[0-9]{8}" datestring)
     datestring
-    (let ((today (local-time:today)))
-      (local-time:format-timestring NIL today :format '((:year 4) (:month 2) (:day 2))))))
+    (timestamp->datestring (local-time:today))))
 
 (defun datestring->timestamp (datestring)
   "Converts a `datestring` to a local-time timestamp"
   (multiple-value-bind (match regs) (ppcre:scan-to-strings
                                       "([0-9]{4})([0-9]{2})([0-9]{2})"
-                                      datestring) 
+                                      (format NIL "~A" datestring)) 
     (let ((d (parse-integer (aref regs 2)))
           (m (parse-integer (aref regs 1)))
           (y (parse-integer (aref regs 0))))
-   (local-time:encode-timestamp 0 0 0 0 d m y :timezone amsterdam))))
+   (local-time:encode-timestamp 0 0 0 0 d m y))))
 
 (defun refresh-classes ()
   "sets *classes* to an alist of (classname . classid) pairs"

@@ -22,7 +22,7 @@
          (if ,footer (:span.left ,footer))
          (:span.right ("Roo is [open source.](https://github.com/jorams/roo)")))))))
 
-(defun lesson (lesson)
+(defun render-lesson (lesson)
   (with-accessors ((teacher roo-parser:teacher)
                    (location roo-parser:location)
                    (subject roo-parser:subject)) lesson
@@ -31,36 +31,49 @@
            (:span.subject subject " - ")
            (:span.teacher teacher " ")))))
 
-(defun appointment (appointment)
+(defun render-appointment (appointment)
   (with-accessors ((start-time roo-parser:start-time)
                    (end-time roo-parser:end-time)
                    (lessons roo-parser:lessons)) appointment
     (with-html (:div.item
               (:div.time start-time " ⇾ " end-time)
-              (:ul.item (loop for l in lessons do (lesson l)))))))
+              (:ul.item (loop for l in lessons do (render-lesson l)))))))
 
-(defun day (date appointments)
+(defun render-day (date appointments)
   (with-html (:section.day
            (:h2.item.header (name-of-day date))
-           (loop for l in appointments do (appointment l)))))
+           (loop for l in appointments do (render-appointment l)))))
 
-(defun days (appointments)
+(defun render-days (appointments)
   (loop for day in (remove-duplicates appointments
                                       :test #'equal
                                       :key #'roo-parser:date)
         do (let* ((date (roo-parser:date day))
                   (day-appointments (remove-if-not #'(lambda (d) (equal d date))
-                                              appointments
-                                              :key #'roo-parser:date)))
-             (day date day-appointments))))
+                                                   appointments
+                                                   :key #'roo-parser:date)))
+             (render-day date day-appointments))))
 
-(defun schedule (appointments class &optional raw-url)
-  (render (main-view
-            ((if appointments
-               (days appointments)
-               (:p.center "You are looking at the inside of a rooster. An empty one.")))
+(defun render-schedule (appointments class &optional raw-url)
+  (let ((prev-week-datestring (roo-parser:timestamp->datestring
+                                (local-time:timestamp-
+                                  (roo-parser:datestring->timestamp *datestring*)
+                                  7 :day)))
+        (next-week-datestring (roo-parser:timestamp->datestring
+                                (local-time:timestamp+
+                                  (roo-parser:datestring->timestamp *datestring*)
+                                  7 :day))))
+    (render (main-view
+              ((:div.prev-next
+                 (:a :href (format NIL "/~A/~A" *proper-class-name*
+                                   prev-week-datestring) "<<<")
+                 (:a :href (format NIL "/~A/~A" *proper-class-name*
+                                   next-week-datestring) ">>>"))
+               (if appointments
+                 (render-days appointments)
+                 (:p.center "You are looking at the inside of a rooster. An empty one.")))
               :title (format NIL "Rooster ~A - Roo" class)
-              :footer (with-html (:a :href raw-url "Raw")))))
+              :footer (with-html (:a :href raw-url "Raw"))))))
 
 (defun class-input ()
   (with-html 

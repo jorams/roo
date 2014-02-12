@@ -41,7 +41,9 @@
 
 (defun render-day (date appointments)
   (with-html (:section.day
-           (:h2.item.header (name-of-day date))
+           (:h2.item.header (name-of-day date)
+            (local-time:format-timestring NIL (roo-parser:datestring->timestamp date)
+                                          :format '(:day " " :short-month)))
            (loop for l in appointments do (render-appointment l)))))
 
 (defun render-days (appointments)
@@ -55,23 +57,25 @@
              (render-day date day-appointments))))
 
 (defun render-schedule (appointments class &optional raw-url)
-  (let ((prev-week-datestring (roo-parser:timestamp->datestring
-                                (local-time:timestamp-
-                                  (roo-parser:datestring->timestamp *datestring*)
-                                  7 :day)))
-        (next-week-datestring (roo-parser:timestamp->datestring
-                                (local-time:timestamp+
-                                  (roo-parser:datestring->timestamp *datestring*)
-                                  7 :day))))
+  (let* ((timestamp (roo-parser:datestring->timestamp *datestring*))
+         (prev-week-datestring (roo-parser:timestamp->datestring
+                                 (local-time:timestamp-
+                                   timestamp
+                                   7 :day)))
+         (next-week-datestring (roo-parser:timestamp->datestring
+                                 (local-time:timestamp+
+                                   timestamp
+                                   7 :day))))
     (render (main-view
               ((:div.prev-next
                  (:a :href (format NIL "/~A/~A" *proper-class-name*
                                    prev-week-datestring) "<<<")
+                 (local-time:format-timestring NIL timestamp :format '("Week " :iso-week-number))
                  (:a :href (format NIL "/~A/~A" *proper-class-name*
                                    next-week-datestring) ">>>"))
-               (if appointments
-                 (render-days appointments)
-                 (:p.center "You are looking at the inside of a rooster. An empty one.")))
+                (if appointments
+                  (render-days appointments)
+                  (:p.center "You are looking at the inside of a rooster. An empty one.")))
               :title (format NIL "Rooster ~A - Roo" class)
               :footer (with-html (:a :href raw-url "Raw"))))))
 

@@ -6,7 +6,7 @@
   :depends-on (#:drakma #:st-json
                #:caramel #:local-time
                #:cl-ppcre
-               #:hunchentoot #:ht-routes
+               #:ningle #:clack-errors
                #:spinneret #:split-sequence)
   :components ((:file "packages")
                (:module "parser"

@@ -12,10 +12,10 @@ Roo is built in Common Lisp on SBCL. It depends on:
 - [caramel](https://github.com/pocket7878/Caramel) (LLGPL)
 - [local-time](http://common-lisp.net/project/local-time/) (BSD)
 - [cl-ppcre](http://weitz.de/cl-ppcre/) (BSD)
-- [hunchentoot](http://weitz.de/hunchentoot/) (BSD)
 - [spinneret](https://github.com/ruricolist/spinneret) (MIT)
 - [split-sequence](http://www.cliki.net/split-sequence) (Public Domain)
-- [ht-routes](https://github.com/gihnius/ht-routes) (Unknown)
+- [ningle](https://github.com/fukamachi/ningle) (LLGPL)
+- [clack-errors](https://github.com/eudoxia0/clack-errors) (LLGPL) (note that at the time of this writing Roo depends on some changes in a pending pull request)
 
 All of those except ht-routes can be automatically downloaded by Quicklisp. You'll have to clone the ht-routes repository and put it somewhere Quicklisp can find it.
 
@@ -39,7 +39,7 @@ Roo is divided into two packages, roo-site and roo-parser.
 ## Issues
 
 - There is no caching, every time someone requests a schedule Roo goes out and fetches it from the official site.
-- roo-site doesn't serve static files, so it has to run behind something like Nginx to look pretty.
+- roo-site doesn't serve static files, so it has to run behind something like Nginx to look pretty. (note: it now does serve static files from /static, but there are quite a few rough edges)
 - It is currently not possible to get the schedule for a specific week in a user-friendly way. It's possible to append a date in the format /YYYYMMDD to the end of the schedule for a certain class, but that's not a nice way to go about it. (note: there are now buttons to go to the next- and previous week, so this has been improved somewhat.)
 - The code isn't as clean and well-organized as I'd like it to be.
 

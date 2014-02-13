@@ -57,20 +57,19 @@
              (render-day date day-appointments))))
 
 (defun render-schedule (appointments class &optional raw-url)
-  (let* ((timestamp (roo-parser:datestring->timestamp *datestring*))
-         (prev-week-datestring (roo-parser:timestamp->datestring
+  (let* ((prev-week-datestring (roo-parser:timestamp->datestring
                                  (local-time:timestamp-
-                                   timestamp
+                                   *date*
                                    7 :day)))
          (next-week-datestring (roo-parser:timestamp->datestring
                                  (local-time:timestamp+
-                                   timestamp
+                                   *date*
                                    7 :day))))
     (render (main-view
               ((:div.prev-next
                  (:a :href (format NIL "/~A/~A" *proper-class-name*
                                    prev-week-datestring) "<<<")
-                 (local-time:format-timestring NIL timestamp :format '("Week " :iso-week-number))
+                 (local-time:format-timestring NIL *date* :format '("Week " :iso-week-number))
                  (:a :href (format NIL "/~A/~A" *proper-class-name*
                                    next-week-datestring) ">>>"))
                 (if appointments
@@ -98,7 +97,8 @@
               local: [~{'~A',~%~}]});"
              (loop for c in roo-parser:*classes* collect (car c))))))
 
-(defun index ()
+(defun index (params)
+  (declare (ignore params))
   (render (main-view
             ((:h1 "Roo")
              (:p ("Roo is an alternative schedule viewer for [Windesheim.](http://www.windesheiminternational.nl/)
@@ -106,7 +106,7 @@
              (class-input)))))
 
 (defun class-not-found ()
-  (setf (hunchentoot:return-code*) hunchentoot:+http-not-found+)
+  (setf (clack.response:status *response*) 404)
   (render (main-view
             ((:h1 "404 Missing roosters!")
              (:p "Rumors have started spreading of a mysterious \"Rooster 

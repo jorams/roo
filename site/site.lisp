@@ -1,48 +1,64 @@
 (in-package #:roo-site)
 
-(defvar *server*)
+(defvar *handler*)
+(defvar *app* (make-instance '<app>))
 
 (defvar *proper-class-name*)
-(defvar *datestring*)
+(defvar *date*)
 
-(defun index-route ()
-  (index))
+(setf (route *app* "/") #'index)
+(setf (route *app* "/static/:file") #'(lambda (params)
+                                    (merge-pathnames "site/static/" (getf params :file))))
 
-(defun redir-route ()
-  (let ((class (hunchentoot:post-parameter "class")))
-         (if class
-           (multiple-value-bind (id class) (roo-parser:class-id class)
-             (if class
-               (hunchentoot:redirect (format NIL "/~A" class) :code hunchentoot:+http-see-other+)
-               (class-not-found)))
-           (class-not-found))))
+(setf (route *app* "/" :method :POST)
+      (lambda (params)
+        (let ((class (getf params :|class|)))
+          (format *trace-output* "~A~%" class)
+          (if class
+            (multiple-value-bind (id class) (roo-parser:class-id class)
+              (if class
+                (clack.response:redirect *response*
+                                         (format NIL "/~A" class)
+                                         303)
+                (class-not-found)))
+            (class-not-found)))))
 
-(defun schedule-route ()
+(defun schedule-route (params)
   (multiple-value-bind (class proper-name)
-    (roo-parser:class-id (getf *route-params* :class))
+    (roo-parser:class-id (getf params :class))
     (if class
-      (let* ((date (or (getf *route-params* :date)
+      (let* ((date (or (getf params :date)
                        (roo-parser:datestring)))
              (appointments (roo-parser:get-appointments class date))
              (*proper-class-name* proper-name)
-             (*datestring* date))
+             (*date* (roo-parser:datestring->timestamp date)))
+        (if (not *date*) (return-from schedule-route))
         (render-schedule appointments proper-name (roo-parser:raw-url class date)))
       (class-not-found))))
 
-(map-routes 
-  ("/" :get index-route :post redir-route)
-  ("/:class/:date" :get schedule-route :date "[0-9]{8}")
-  ("/:class" :get schedule-route))
+(setf (route *app* "/:class/:date") #'schedule-route)
+(setf (route *app* "/:class") #'schedule-route)
 
-(defclass acceptor (hunchentoot:acceptor) ())
+(defmethod not-found ((this (eql *app*)))
+  (declare (ignore this))
+  (setf (clack.response:status *response*) 404)
+  (error-status 404))
 
-(defmethod hunchentoot:acceptor-status-message
-  ((acceptor acceptor) http-return-code &key &allow-other-keys)
-  (error-status http-return-code))
-
-(defun start ()
+(defun start (&optional dev?)
   (unless (boundp 'roo-parser:*classes*)
     (roo-parser:refresh-classes))
-  (unless (boundp '*server*) 
-    (setf *server* (make-instance 'acceptor :port 8000))
-    (hunchentoot:start *server*)))
+  (if (not (boundp '*handler*))
+    (setf *handler*
+          (clack:clackup (clack.builder:builder
+                           (clack-errors:<clack-error-middleware>
+                             :debug dev?
+                             :prod-renderer (lambda (condition env)
+                                              (declare (ignore condition env))
+                                              (error-status 500)))
+                           *app*)
+                         :port 5000))
+    (princ "Already started.")))
+
+(defun stop ()
+  (clack.handler:stop *handler*)
+  (makunbound '*handler*))

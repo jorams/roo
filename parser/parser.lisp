@@ -66,12 +66,13 @@
 (defun datestring->timestamp (datestring)
   "Converts a `datestring` to a local-time timestamp"
   (multiple-value-bind (match regs) (ppcre:scan-to-strings
-                                      "([0-9]{4})([0-9]{2})([0-9]{2})"
+                                      "^([0-9]{4})([0-9]{2})([0-9]{2})$"
                                       (format NIL "~A" datestring)) 
-    (let ((d (parse-integer (aref regs 2)))
-          (m (parse-integer (aref regs 1)))
-          (y (parse-integer (aref regs 0))))
-   (local-time:encode-timestamp 0 0 0 0 d m y))))
+    (if match
+      (let ((d (parse-integer (aref regs 2)))
+            (m (parse-integer (aref regs 1)))
+            (y (parse-integer (aref regs 0))))
+        (local-time:encode-timestamp 0 0 0 0 d m y)))))
 
 (defun refresh-classes ()
   "sets *classes* to an alist of (classname . classid) pairs"

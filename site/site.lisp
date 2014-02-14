@@ -13,7 +13,6 @@
 (setf (route *app* "/" :method :POST)
       (lambda (params)
         (let ((class (getf params :|class|)))
-          (format *trace-output* "~A~%" class)
           (if class
             (multiple-value-bind (id class) (roo-parser:class-id class)
               (if class

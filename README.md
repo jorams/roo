@@ -17,9 +17,9 @@ Roo is built in Common Lisp on SBCL. It depends on:
 - [ningle](https://github.com/fukamachi/ningle) (LLGPL)
 - [clack-errors](https://github.com/eudoxia0/clack-errors) (LLGPL) (note that at the time of this writing Roo depends on some changes in a pending pull request)
 
-All of those except ht-routes can be automatically downloaded by Quicklisp. You'll have to clone the ht-routes repository and put it somewhere Quicklisp can find it.
+All of those can be automatically downloaded by Quicklisp.
 
-After downloading ht-routes you can run
+You can run
 
     (ql:quickload :roo)
 

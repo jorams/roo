@@ -15,9 +15,9 @@ Roo is built in Common Lisp on SBCL. It depends on:
 - [spinneret](https://github.com/ruricolist/spinneret) (MIT)
 - [split-sequence](http://www.cliki.net/split-sequence) (Public Domain)
 - [ningle](https://github.com/fukamachi/ningle) (LLGPL)
-- [clack-errors](https://github.com/eudoxia0/clack-errors) (LLGPL) (note that at the time of this writing Roo depends on some changes in a pending pull request)
+- [clack-errors](https://github.com/eudoxia0/clack-errors) (LLGPL) (note that at the time of this writing Roo depends on some changes that are not yet in Quicklisp)
 
-All of those can be automatically downloaded by Quicklisp.
+All of those can be automatically downloaded by Quicklisp, but you'll have to locally clone clack-errors to use this.
 
 You can run
 

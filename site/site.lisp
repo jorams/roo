@@ -7,8 +7,6 @@
 (defvar *date*)
 
 (setf (route *app* "/") #'index)
-(setf (route *app* "/static/:file") #'(lambda (params)
-                                    (merge-pathnames "site/static/" (getf params :file))))
 
 (setf (route *app* "/" :method :POST)
       (lambda (params)
@@ -54,6 +52,9 @@
                              :prod-renderer (lambda (condition env)
                                               (declare (ignore condition env))
                                               (error-status 500)))
+                           (clack.middleware.static:<clack-middleware-static>
+                             :path "/static/"
+                             :root #p"site/static/")
                            *app*)
                          :port 5000))
     (princ "Already started.")))

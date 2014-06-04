@@ -24,7 +24,7 @@
    (lessons :initarg :lessons
 	    :initform '()
 	    :accessor lessons))
-  (:documentation "Represents a lesson. The actual"))
+  (:documentation "A container for multiple lessons at the same time."))
 
 (defclass lesson ()
   ((class :initarg :class)

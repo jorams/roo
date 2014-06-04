@@ -1,7 +1,7 @@
 (in-package #:roo-parser)
 
 (defparameter *base-url*
-  "https://roosters.windesheim.nl/WebUntis/Timetable.do?type=1")
+  "https://asopo.webuntis.com/WebUntis/Timetable.do?school=Windesheim&type=1")
 
 ;;; This is to make Drakma recognize the json and html as text
 (pushnew '("application" . "json") drakma:*text-content-types*)

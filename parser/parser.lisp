@@ -8,13 +8,6 @@
 (pushnew '("text" . "html") drakma:*text-content-types*)
 
 (defvar *classes*)
-(defparameter *cookie-jar*
-  (make-instance 'drakma:cookie-jar
-                 :cookies (list
-			   (make-instance 'drakma:cookie
-					  :name "schoolname"
-					  :value "\"_V2luZGVzaGVpbQ==\""
-					  :domain "roosters.windesheim.nl"))))
 
 (local-time:define-timezone 
     amsterdam 
@@ -46,12 +39,6 @@
   (:documentation "Represents an instance of a lesson, mostly for when a
                    lesson is given to parts of a class separately"))
 
-(defmacro request-url (url &rest params)
-  "Requests the URL using drakma, automatically supplying the cookie jar"
-  `(drakma:http-request ,url
-                        ,@params
-                        :cookie-jar *cookie-jar*))
-
 (defun timestamp->datestring (timestamp)
   "Converts a timestamp to a `datestring`"
   (local-time:format-timestring NIL timestamp :format '((:year 4) (:month 2) (:day 2))))
@@ -77,7 +64,7 @@
 (defun refresh-classes ()
   "sets *classes* to an alist of (classname . classid) pairs"
   (let ((json (st-json:read-json 
-	       (request-url *base-url*))))
+	       (drakma:http-request *base-url*))))
     (setf *classes*
 	  (mapcar #'(lambda (item)
 		      (cons (st-json:getjso "name" item)
@@ -98,7 +85,7 @@
   "Returns the schedule of the class with the supplied id at the specified
    date. If no date is specified the server will use the current date"
   (caramel:html-resource
-   (request-url (raw-url id date))))
+   (drakma:http-request (raw-url id date))))
 
 (defun class-id (name)
   "Returns the id associated with the class name. Also returns as a second

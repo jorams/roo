@@ -1,142 +1,176 @@
-(in-package #:roo-parser)
+;;;; Roo, better schedules for Windesheim.
+;;;; Copyright (C) 2014  Joram Schrijver
+;;;;
+;;;; This program is free software: you can redistribute it and/or modify
+;;;; it under the terms of the GNU Affero General Public License as published
+;;;; by the Free Software Foundation, either version 3 of the License, or
+;;;; (at your option) any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU Affero General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Affero General Public License
+;;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defparameter *base-url*
-  "https://asopo.webuntis.com/WebUntis/Timetable.do?school=Windesheim&type=1")
+(in-package #:roo.parser)
 
-;;; This is to make Drakma recognize the json and html as text
-(pushnew '("application" . "json") drakma:*text-content-types*)
-(pushnew '("text" . "html") drakma:*text-content-types*)
+(defparameter +schedule-element-classes+
+  '(1 group
+    2 teacher
+    3 course
+    4 classroom)
+  "A mapping of WebUntis type numbers to their respective class names.")
 
-(defvar *classes*)
+(defparameter +schedule-element-ids+
+  '(group 1
+    teacher 2
+    course 3
+    classroom 4)
+  "A mapping of class names to their WebUntis type numbers")
 
-(local-time:define-timezone 
-    amsterdam 
-    (merge-pathnames #p"Europe/Amsterdam"
-		     local-time::*default-timezone-repository-path*))
+(defparameter +lesson-types+
+  '(1 :free
+    2 :lesson
+    3 :reservation
+    4 :book
+    5 :storno ; ?
+    6 :lock
+    7 :holiday
+    8 :holiday-lock
+    9 :conflict
+    10 :subst
+    11 :cancelled
+    12 :without-elem
+    13 :elem-changed
+    14 :shift
+    15 :special-duty
+    16 :exam
+    17 :break-supervision
+    18 :stand-by
+    19 :office-hour))
 
-(defclass appointment ()
-  ((date :initarg :date
-	 :accessor date)
-   (start-time :initarg :start
-               :accessor start-time)
-   (end-time :initarg :end
-             :accessor end-time)
-   (lessons :initarg :lessons
-	    :initform '()
-	    :accessor lessons))
-  (:documentation "A container for multiple lessons at the same time."))
+(defvar *departments* (make-hash-table))
+(defvar *groups* (make-hash-table))
+(defvar *teachers* (make-hash-table))
+(defvar *courses* (make-hash-table))
+
+(deftype lesson-type ()
+  '(member :free :lesson :reservation :book :storno :lock :holiday
+  :holiday-lock :conflict :subst :cancelled :without-elem :elem-changed :shift
+  :special-duty :exam :break-supervision :stand-by :office-hour))
+
+(defclass department ()
+  ((id :type integer
+       :initarg :id
+       :reader id)
+   (name :type string
+         :initarg :name
+         :reader name)
+   (label :type string
+          :initarg :label
+          :reader label)))
+
+(defun make-department (json)
+  (make-instance 'department
+                 :id (gethash "id" json)
+                 :name (gethash "name" json)
+                 :label (gethash "label" json)))
+
+(defun make-departments (json-objects &optional (departments *departments*))
+  (mapc (lambda (json)
+          (let ((department (make-department json)))
+            (setf (gethash (id department) departments)
+                  department)))
+        json-objects)
+  departments)
+
+(defclass schedule-element ()
+  ((id :type integer
+       :initarg :id
+       :reader id)
+   (name :type string
+         :initarg :name
+         :reader name)
+   (long-name :type string
+              :initarg :long-name
+              :reader long-name)
+   (display-name :type string
+                 :initarg :display-name
+                 :reader display-name)
+   (departments :type list
+                :initarg :departments
+                :reader departments)))
+
+(defclass group (schedule-element) ())
+(defclass teacher (schedule-element) ())
+(defclass course (schedule-element) ())
+(defclass classroom (schedule-element) ())
+
+(deftype schedule-element-name ()
+  '(member group teacher course classroom))
+
+(defun make-schedule-element (type json)
+  (make-instance type
+                 :id (parse-integer (gethash "id" json))
+                 :name (gethash "name" json)
+                 :long-name (gethash "longName" json)
+                 :display-name (gethash "displayName" json)
+                 :departments (mapcar (lambda (did) (gethash did *departments*))
+                                      (gethash "dids" json))))
 
 (defclass lesson ()
-  ((class :initarg :class)
-   (teacher :initarg :teacher
-            :accessor teacher)
-   (course :initarg :course
-	   :accessor course)
-   (location :initarg :location
-             :accessor location)
-   (subject :initarg :subject
-	    :accessor subject))
-  (:documentation "Represents an instance of a lesson, mostly for when a
-                   lesson is given to parts of a class separately"))
+  ((id :type integer
+       :initarg :id
+       :reader id)
+   (lesson-number :type integer
+                  :initarg :number
+                  :reader lesson-number)
+   (lesson-id :type integer
+              :initarg :id
+              :reader lesson-id)
+   (lesson-type :type lesson-type
+                :initarg :lesson-type
+                :reader lesson-type)
+   (text :type string
+         :initarg :text
+         :reader text)))
 
-(defun timestamp->datestring (timestamp)
-  "Converts a timestamp to a `datestring`"
-  (local-time:format-timestring NIL timestamp :format '((:year 4) (:month 2) (:day 2))))
+(defun fetch-json (uri &rest post-parameters)
+  (let* ((parameters (alexandria:plist-alist post-parameters))
+         (stream (drakma:http-request uri
+                                      :method :post
+                                      :parameters parameters
+                                      :want-stream t)))
+    (yason:parse stream)))
 
-(defun datestring (&optional datestring)
-  "If datestring is supplied and looks like a valid datestring (8 numbers),
-   returns datestring. Otherwise returns a datestring of the current date"
-  (if (ppcre:scan "[0-9]{8}" datestring)
-      datestring
-      (timestamp->datestring (local-time:today))))
+(defun fetch-elements (uri type)
+  (check-type type schedule-element-name)
+  (let* ((json (fetch-json uri
+                           "ajaxCommand" "getPageConfig"
+                           "type" (princ-to-string
+                                   (getf +schedule-element-ids+ type type))))
+         (*departments* (make-departments (gethash "departments" json))))
+    (values (mapcar #'(lambda (json)
+                        (make-schedule-element type json))
+                    (gethash "elements" json))
+            *departments*)))
 
-(defun datestring->timestamp (datestring)
-  "Converts a `datestring` to a local-time timestamp"
-  (multiple-value-bind (match regs) (ppcre:scan-to-strings
-				     "^([0-9]{4})([0-9]{2})([0-9]{2})$"
-				     (format NIL "~A" datestring)) 
-    (if match
-	(let ((d (parse-integer (aref regs 2)))
-	      (m (parse-integer (aref regs 1)))
-	      (y (parse-integer (aref regs 0))))
-	  (local-time:encode-timestamp 0 0 0 0 d m y)))))
-
-(defun refresh-classes ()
-  "sets *classes* to an alist of (classname . classid) pairs"
-  (let ((json (st-json:read-json 
-	       (drakma:http-request *base-url*))))
-    (setf *classes*
-	  (mapcar #'(lambda (item)
-		      (cons (st-json:getjso "name" item)
-			    (st-json:getjso "id" item)))
-		  (st-json:getjso "data.items" 
-				  (st-json:getjso 
-				   "cargs"
-				   (nth 7
-					(st-json:getjso* 
-					 "viewModel.dojoObjects" 
-					 json))))))))
-
-(defun raw-url (class date)
-  (concatenate 'string *base-url* "&id=" (write-to-string class)
-	       "&ajaxCommand=renderTimetable&date=" date))
-
-(defun rooster-dom (id &optional date)
-  "Returns the schedule of the class with the supplied id at the specified
-   date. If no date is specified the server will use the current date"
-  (caramel:html-resource
-   (drakma:http-request (raw-url id date))))
-
-(defun class-id (name)
-  "Returns the id associated with the class name. Also returns as a second
-   value a string containing the class name in the proper case"
-  (unless (boundp '*classes*) (refresh-classes))
-  (let ((class-id (assoc name *classes* :test #'string-equal)))
-    (values (cdr class-id) (car class-id))))
-
-(defun appointments-dom (rooster-dom)
-  "Returns all DOM-nodes (of type td) representing lessons."
-					; The two classes I select here seem to be enough to get all <td>s
-					; representing lessons.
-  (caramel:select "td.A_0_1,td.A_0_6" rooster-dom))
-
-(defun text (domelem)
-  "Returns the text contained within a node, roughly."
-  (if domelem
-      (caramel:get-content (car (caramel:get-content domelem)))
-      ""))
-
-(defun create-appointment (ldom)
-  "Turns an appointment DOM element into an instance of APPOINTMENT"
-  (let* ((start-end-time (caramel:select ".ti" ldom))
-         (start-time (car start-end-time))
-         (end-time (cadr start-end-time))
-         (date (parse-integer (ppcre:scan-to-strings "[0-9]{8}" (caramel:get-attr ldom "onclick")))))
-    (make-instance 'appointment
-                   :start (text start-time)
-                   :end (text end-time)
-                   :date date
-                   :lessons
-                   (loop for (class . classcdr) = (caramel:select ".Z_0_0" ldom) then classcdr
-		      for (teacher . teachercdr) = (caramel:select ".Z_1_0" ldom) then teachercdr
-		      for (course . coursecdr) = (caramel:select ".Z_2_0" ldom) then coursecdr
-		      for (location . locationcdr) = (caramel:select ".Z_2_1, .Z_s" ldom) then locationcdr
-		      for (subject . subjectcdr) = (caramel:select ".Z_3_0" ldom) then subjectcdr
-		      collect (make-instance 'lesson
-					     :class (text class)
-					     :teacher (text teacher)
-					     :course (text course)
-					     :location (text location)
-					     :subject (text subject))
-		      while (or classcdr teachercdr coursecdr locationcdr subjectcdr)))))
-
-(defun get-appointments (id &optional date)
-  "Returns a list of lessons for the class with the specified id. If the
-   specified ID is a string it is automatically passed through CLASS-ID to get
-   the id"
-  (stable-sort
-   (mapcar #'create-appointment (appointments-dom (rooster-dom (if (stringp id)
-								   (class-id id)
-								   id) 
-							       date)))
-   #'< :key #'date))
+(defun fetch-timetable (uri element date
+                        &key
+                          (type (type-of element))
+                          (departments *departments*)
+                          (groups *groups*)
+                          (teachers *teachers*)
+                          (courses *courses*))
+  (check-type type schedule-element-name)
+  (let* ((json (fetch-json
+                uri
+                "ajaxCommand" "getWeeklyTimetable"
+                "elementType" (princ-to-string
+                               (getf +schedule-element-ids+ type type))
+                "elementId" (princ-to-string
+                             (id element)))))
+    ;; TODO: Do something with the "elements" and "elementPeriods" values in JSON
+    ))

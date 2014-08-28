@@ -14,19 +14,5 @@
 ;;;; You should have received a copy of the GNU Affero General Public License
 ;;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(asdf:defsystem #:roo
-  :serial t
-  :description "Better schedules for Windesheim"
-  :author "Joram Schrijver <i@joram.io>"
-  :license "GNU AGPL 3"
-  :depends-on (;; parser and site
-               #:local-time #:cl-ppcre #:yason #:alexandria
-               ;; parser
-               #:drakma
-               ;; site
-               #:clack #:ningle)
-  :components ((:file "util")
-               (:module "parser"
-                :components ((:file "package")))
-               (:module "site"
-                :components ((:file "package")))))
+(defpackage #:roo.parser
+  (:use #:cl #:roo.util))

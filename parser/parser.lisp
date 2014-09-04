@@ -55,6 +55,7 @@
 (defvar *groups* (make-hash-table))
 (defvar *teachers* (make-hash-table))
 (defvar *courses* (make-hash-table))
+(defvar *classrooms* (make-hash-table))
 
 (deftype lesson-type ()
   '(member :free :lesson :reservation :book :storno :lock :holiday
@@ -113,7 +114,7 @@
 
 (defun make-schedule-element (type json)
   (make-instance type
-                 :id (parse-integer (gethash "id" json))
+                 :id (gethash "id" json)
                  :name (gethash "name" json)
                  :long-name (gethash "longName" json)
                  :display-name (gethash "displayName" json)
@@ -125,17 +126,56 @@
        :initarg :id
        :reader id)
    (lesson-number :type integer
-                  :initarg :number
+                  :initarg :lesson-number
                   :reader lesson-number)
    (lesson-id :type integer
-              :initarg :id
+              :initarg :lesson-id
               :reader lesson-id)
    (lesson-type :type lesson-type
                 :initarg :lesson-type
                 :reader lesson-type)
-   (text :type string
-         :initarg :text
-         :reader text)))
+   (lesson-text :type string
+                :initarg :lesson-text
+                :reader lesson-text)
+   (date :type integer
+         :initarg :date
+         :reader date)
+   (start-time :type integer
+               :initarg :start-time
+               :reader start-time)
+   (end-time :type integer
+             :initarg :end-time
+             :reader end-time)
+   (elements :initarg :elements
+             :reader elements)))
+
+(defun make-lesson (json)
+  (flet ((find-lesson-type (is)
+           (loop for type in '("standard" "breakSupervision" "officeHour"
+                               "standBy" "substitution" "roomSubstitution"
+                               "additional" "shift" "cancelled" "withoutElement"
+                               "withoutElementAndCanceled" "exam" "free"
+                               "confirmed" "unconfirmed" "roomLock" "holiday")
+                 for x from 1
+                 if (gethash type is)
+                   return x))
+         (find-element (elem)
+           (gethash (gethash "id" elem)
+                    (ecase (gethash "type" elem)
+                      (1 *groups*)
+                      (2 *teachers*)
+                      (3 *courses*)
+                      (4 *classrooms*)))))
+    (make-instance 'lesson
+                   :id (gethash "id" json)
+                   :lesson-number (gethash "lessonNumber" json)
+                   :lesson-id (gethash "lessonId" json)
+                   :lesson-text (gethash "lessonText" json)
+                   :date (gethash "date" json)
+                   :start-time (gethash "startTime" json)
+                   :end-time (gethash "endTime" json)
+                   :lesson-type (find-lesson-type (gethash "is" json))
+                   :elements (mapcar #'find-element (gethash "elements" json)))))
 
 (defun fetch-json (uri &rest post-parameters)
   (let* ((parameters (alexandria:plist-alist post-parameters))
@@ -159,11 +199,7 @@
 
 (defun fetch-timetable (uri element date
                         &key
-                          (type (type-of element))
-                          (departments *departments*)
-                          (groups *groups*)
-                          (teachers *teachers*)
-                          (courses *courses*))
+                          (type (type-of element)))
   (check-type type schedule-element-name)
   (let* ((json (fetch-json
                 uri
@@ -171,6 +207,30 @@
                 "elementType" (princ-to-string
                                (getf +schedule-element-ids+ type type))
                 "elementId" (princ-to-string
-                             (id element)))))
-    ;; TODO: Do something with the "elements" and "elementPeriods" values in JSON
+                             (id element))
+                "date" (princ-to-string date)
+                "formatId" "2"
+                )))
+    (mapcar #'make-lesson
+            (gethash (princ-to-string (id element))
+                     (gethash "elementPeriods"
+                              (gethash "data"
+                                       (gethash "result" json)))))
     ))
+
+(defun update-groups (uri)
+  (mapcar (lambda (g) (setf (gethash (id g) *groups*) g))
+          (fetch-elements uri 'group)))
+
+(defun update-teachers (uri)
+  (mapcar (lambda (g) (setf (gethash (id g) *teachers*) g))
+          (fetch-elements uri 'teacher)))
+
+(defun update-courses (uri)
+  (mapcar (lambda (g) (setf (gethash (id g) *courses*) g))
+          (fetch-elements uri 'course)))
+
+(defun update (uri)
+  (update-groups uri)
+  (update-teachers uri)
+  (update-courses uri))

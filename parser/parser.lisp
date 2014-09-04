@@ -209,8 +209,9 @@
                 "elementId" (princ-to-string
                              (id element))
                 "date" (princ-to-string date)
-                "formatId" "2"
-                )))
+                ;; If we don't supply this the elements list of a lesson won't
+                ;; contain the group
+                "formatId" "2")))
     (mapcar #'make-lesson
             (gethash (princ-to-string (id element))
                      (gethash "elementPeriods"

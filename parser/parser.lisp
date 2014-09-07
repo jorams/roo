@@ -117,7 +117,11 @@
                  :id (gethash "id" json)
                  :name (gethash "name" json)
                  :long-name (gethash "longName" json)
-                 :display-name (gethash "displayName" json)
+                 :display-name (or (gethash "displayName" json)
+                                   ;; If the element comes from the "elements"
+                                   ;; array in a getWeeklyTimetable result the
+                                   ;; display name is named "displayname"
+                                   (gethash "displayname" json))
                  :departments (mapcar (lambda (did) (gethash did *departments*))
                                       (gethash "dids" json))))
 

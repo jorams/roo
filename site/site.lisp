@@ -12,12 +12,11 @@
 
 (defun update-mappings! ()
   (macrolet ((update-from (var ids names)
-               `(setf ,names
-                      (maphash (lambda (id val)
-                                 (setf (gethash (display-name val) ,ids)
-                                       id)
-                                 (display-name val))
-                               ,var))))
+               `(maphash (lambda (id val)
+                           (setf (gethash (display-name val) ,ids)
+                                 id)
+                           (push (display-name val) ,names))
+                         ,var)))
     (update!)
     (clrhash *group-ids*)
     (clrhash *teacher-ids*)

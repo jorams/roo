@@ -258,7 +258,7 @@ take place at the same time, they won't be treated as separate."
         (fetch-elements uri 'course)))
 
 (defun update! (&optional (uri (config :base-uri)))
-  (update-groups uri)
-  (update-teachers uri)
-  (update-courses uri)
+  (update-groups! uri)
+  (update-teachers! uri)
+  (update-courses! uri)
   (values))

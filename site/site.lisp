@@ -24,5 +24,10 @@
     (update-from *groups* *group-ids* *group-names*)
     (update-from *teachers* *teacher-ids* *teacher-names*)))
 
+(mount-module -static- (#:restas.directory-publisher)
+  (:url "static")
+  (restas.directory-publisher:*directory*
+   (asdf:system-relative-pathname :roo "site/static/")))
+
 (define-route index ("")
   (render-template +index+))

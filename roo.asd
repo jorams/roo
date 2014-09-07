@@ -8,7 +8,8 @@
                ;; parser
                #:drakma
                ;; site
-               #:restas #:hunchentoot #:djula #:asdf)
+               #:restas #:hunchentoot #:djula #:asdf
+               #:restas.directory-publisher)
   :components ((:file "util")
                (:module "parser"
                 :components ((:file "package")

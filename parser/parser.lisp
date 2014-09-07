@@ -228,12 +228,12 @@ take place at the same time, they won't be treated as separate."
                    else
                      do (setf (start-time (first consecutive-hours))
                               (start-time (lastcar consecutive-hours)))
-                     and do (push (first consecutive-hours) lessons)
-                     and do (setf consecutive-hours ())
+                        (push (first consecutive-hours) lessons)
+                        (setf consecutive-hours ())
                    finally (setf (start-time (first consecutive-hours))
                                  (start-time (lastcar consecutive-hours)))
-                   finally (push (first consecutive-hours) lessons)
-                   finally (setf consecutive-hours ()))
+                           (push (first consecutive-hours) lessons)
+                           (setf consecutive-hours ()))
           finally (return lessons))))
 
 (defun stitch-timetable (timetable)

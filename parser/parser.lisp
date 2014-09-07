@@ -214,20 +214,22 @@
                      (gethash "elementPeriods"
                               (gethash "data"
                                        (gethash "result" json)))))))
+;;; Updating the global state
 
-(defun update-groups (uri)
-  (mapcar (lambda (g) (setf (gethash (id g) *groups*) g))
-          (fetch-elements uri 'group)))
+(defun update-groups! (uri)
+  (mapc (lambda (g) (setf (gethash (id g) *groups*) g))
+        (fetch-elements uri 'group)))
 
-(defun update-teachers (uri)
-  (mapcar (lambda (g) (setf (gethash (id g) *teachers*) g))
-          (fetch-elements uri 'teacher)))
+(defun update-teachers! (uri)
+  (mapc (lambda (g) (setf (gethash (id g) *teachers*) g))
+        (fetch-elements uri 'teacher)))
 
-(defun update-courses (uri)
-  (mapcar (lambda (g) (setf (gethash (id g) *courses*) g))
-          (fetch-elements uri 'course)))
+(defun update-courses! (uri)
+  (mapc (lambda (g) (setf (gethash (id g) *courses*) g))
+        (fetch-elements uri 'course)))
 
-(defun update (uri)
+(defun update! (&optional (uri (config :base-uri)))
   (update-groups uri)
   (update-teachers uri)
-  (update-courses uri))
+  (update-courses uri)
+  (values))

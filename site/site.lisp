@@ -18,6 +18,8 @@
                            (push (display-name val) ,names))
                          ,var)))
     (update!)
+    (setf *group-names* ()
+          *teacher-names* ())
     (clrhash *group-ids*)
     (clrhash *teacher-ids*)
     (update-from *groups* *group-ids* *group-names*)

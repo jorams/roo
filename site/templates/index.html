@@ -4,4 +4,40 @@
 
 {% block content %}
 
+<div class="group-input">
+  <form method="POST">
+    <input class="groups" type="text" name="group"
+           placeholder="Klascode...">
+    <input class="submit" type="submit" value="Cock-a-doodle-doo!">
+  </form>
+</div>
+<div class="teacher-input">
+  <form method="POST">
+    <input class="teachers" type="text" name="teacher"
+           placeholder="Docentcode...">
+    <input class="submit" type="submit" value="Cock-a-doodle-doo!">
+  </form>
+</div>
+<script type="text/javascript"
+        src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script type="text/javascript"
+        src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.4/dist/typeahead.bundle.min.js">
+</script>
+<script type="text/javascript">
+$('.groups').typeahead({
+   name: 'groups',
+   limit: 10,
+   local: [
+     {% for name in groups %}
+     {{ name }}
+     {% endfor %}]});
+$('.teachers').typeahead({
+   name: 'teachers',
+   limit: 10,
+   local: [
+     {% for name in teachers %}
+     {{ name }}
+     {% endfor %}]});
+</script>
+
 {% endblock %}

@@ -38,6 +38,7 @@ NAME is the name of the configuration value to fetch.
 CONFIG is the configuration variable it should be read from.
 
 Returns the configuration variable, NIL if it doesn't exist."
+  (unless *config* (error "Configuration not loaded!"))
   (getf config name))
 
 

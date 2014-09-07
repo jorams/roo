@@ -138,7 +138,7 @@
          :reader date)
    (start-time :type integer
                :initarg :start-time
-               :reader start-time)
+               :accessor start-time)
    (end-time :type integer
              :initarg :end-time
              :reader end-time)
@@ -172,6 +172,9 @@
                    :end-time (gethash "endTime" json)
                    :lesson-type (find-lesson-type (gethash "is" json))
                    :elements (mapcar #'find-element (gethash "elements" json)))))
+
+
+;;; Grabbing the JSON and turning it into usable objects
 
 (defun fetch-json (uri &rest post-parameters)
   (let* ((parameters (alexandria:plist-alist post-parameters))
@@ -208,12 +211,54 @@
                 "date" (princ-to-string date)
                 ;; If we don't supply this the elements list of a lesson won't
                 ;; contain the group
-                "formatId" "2")))
+                "formatId" "2"))
+         (data (gethash "data" (gethash "result" json))))
+    ;; Make sure we know any involved classroom (since we can't getPageConfig
+    ;; them)
+    (mapc #'(lambda (cr) (unless (gethash (id cr) *classrooms*)
+                           (setf (gethash (id cr) *classrooms*) cr)))
+          (loop for elem in (gethash "elements" data)
+                do (print elem)
+                if (= 4 (gethash "type" elem))
+                  collect (make-schedule-element 'classroom elem)))
     (mapcar #'make-lesson
             (gethash (princ-to-string (id element))
-                     (gethash "elementPeriods"
-                              (gethash "data"
-                                       (gethash "result" json)))))))
+                     (gethash "elementPeriods" data)))))
+
+;; TODO: This function is a mess. Maybe split it up?
+(defun stitch-day (day)
+  "Stitch all consecutive hours of the same course together, turning them into a
+single lesson. Note that this only looks at what course it is, not at other
+data. Because of this, if there are two instances of the same course in DAY that
+take place at the same time, they won't be treated as separate."
+  (let ((courses (group-by day #'lesson-id)))
+    (loop with lessons = ()
+          for unsorted-course in courses
+          for course = (sort unsorted-course #'< :key #'start-time)
+          do (loop with consecutive-hours = ()
+                   for hour in course
+                   if (or (null consecutive-hours)
+                          (= (start-time hour)
+                             (end-time (first consecutive-hours))))
+                     do (push hour consecutive-hours)
+                   else
+                     do (setf (start-time (first consecutive-hours))
+                              (start-time (lastcar consecutive-hours)))
+                     and do (push (first consecutive-hours) lessons)
+                     and do (setf consecutive-hours ())
+                   finally (setf (start-time (first consecutive-hours))
+                                 (start-time (lastcar consecutive-hours)))
+                   finally (push (first consecutive-hours) lessons)
+                   finally (setf consecutive-hours ()))
+          finally (return lessons))))
+
+(defun stitch-timetable (timetable)
+  (let ((days (group-by timetable #'date)))
+    (mapcar #'stitch-day days)))
+
+(defun timetable (element date &optional (uri (config :base-uri)))
+  (stitch-timetable (fetch-timetable uri element date)))
+
 ;;; Updating the global state
 
 (defun update-groups! (uri)

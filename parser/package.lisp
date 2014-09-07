@@ -15,4 +15,9 @@
 ;;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (defpackage #:roo.parser
-  (:use #:cl #:roo.util))
+  (:use #:cl #:roo.util)
+  (:import-from :alexandria
+                #:lastcar)
+  (:export #:*groups*
+           #:*teachers*
+           #:timetable))

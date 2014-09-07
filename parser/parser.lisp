@@ -79,14 +79,6 @@
                  :name (gethash "name" json)
                  :label (gethash "label" json)))
 
-(defun make-departments (json-objects &optional (departments *departments*))
-  (mapc (lambda (json)
-          (let ((department (make-department json)))
-            (setf (gethash (id department) departments)
-                  department)))
-        json-objects)
-  departments)
-
 (defclass schedule-element ()
   ((id :type integer
        :initarg :id
@@ -191,15 +183,18 @@
 
 (defun fetch-elements (uri type)
   (check-type type schedule-element-name)
-  (let* ((json (fetch-json uri
-                           "ajaxCommand" "getPageConfig"
-                           "type" (princ-to-string
-                                   (getf +schedule-element-ids+ type type))))
-         (*departments* (make-departments (gethash "departments" json))))
-    (values (mapcar #'(lambda (json)
-                        (make-schedule-element type json))
-                    (gethash "elements" json))
-            *departments*)))
+  (let ((json (fetch-json uri
+                          "ajaxCommand" "getPageConfig"
+                          "type" (princ-to-string
+                                  (getf +schedule-element-ids+ type type)))))
+    ;; Update the list of departments, in case there are some we don't know yet
+    (mapc #'(lambda (d) (unless (gethash (id d) *departments*)
+                          (setf (gethash (id d) *departments*) d)))
+          (mapcar #'make-department (gethash "departments" json)))
+
+    (mapcar #'(lambda (json)
+                (make-schedule-element type json))
+            (gethash "elements" json))))
 
 (defun fetch-timetable (uri element date &key (type (type-of element)))
   (check-type type schedule-element-name)

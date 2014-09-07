@@ -1,0 +1,172 @@
+body {
+    background-color: #232B2B;
+    color: #000;
+    font-family: sans-serif;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.day {
+    padding-left: 0;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 0 0.5em #141818;
+}
+
+.header {
+    background-color: #DC3D24;
+    font-size: 1em;
+    font-weight: normal;
+    padding: 16px;
+    text-align: center;
+    margin: 0;
+}
+
+ul.item {
+    padding: 0.01px 0px;
+    margin: 0;
+}
+
+li.lesson {
+    padding: 5px;
+    padding-left: 10px;
+}
+
+li.lesson:nth-child(even) {
+    background-color: rgba(227,174,87,0.4);
+}
+
+.prev-next {
+    text-align: center;
+    padding: 5px;
+    margin:10px;
+    color: white;
+}
+
+.prev-next a {
+    color: white;
+    text-decoration: none;
+}
+
+.time {
+    text-align: center;
+    background-color: #E3AE57;
+    padding: 5px;
+    color: black;
+}
+
+.lesson span:first-child {
+    display: inline-block;
+    width: 4em;
+}
+
+.logo {
+    height: 80px;
+    width: 80px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    height: 95px;
+}
+
+.group-input form,
+.teacher-input form {
+    width: 100%;
+    text-align: center;
+}
+
+span.twitter-typeahead {
+    display: block;
+    width: 100%;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 0;
+    border: none;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    border-radius: 5px 5px 0 0;;
+}
+
+input[type="submit"] {
+    border-radius: 0 0 5px 5px;
+    background-color: #EDEDED;
+}
+
+input[type="submit"]:hover {
+    background-color: #E8E8E8;
+}
+
+input[type="submit"]:active {
+    background-color: #CCC;
+}
+
+.tt-dropdown-menu {
+    border-radius: 0 0 5px 5px;
+    border: none;
+    width: 100% !important;
+    background-color: white;
+    overflow-y: hidden;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+.tt-suggestion {
+    text-align: left;
+    padding: 10px;
+    background-color: #EDEDED;
+    font-size: 13.3333px;
+}
+
+.tt-suggestion p {
+    display: inline-block;
+    margin: 0;
+    color: black;
+}
+
+.tt-is-under-cursor {
+    background-color: #E3AE57;
+}
+
+h1, p {
+    color: white;
+    line-height: 24px;
+    text-align: justify;
+}
+
+h1 {
+    text-align: center;
+}
+
+p a {
+    color: white;
+}
+
+p.center {
+    text-align: center;
+}
+
+footer {
+    color: #516363;
+    margin-top: 2em;
+}
+
+footer a {
+    color: #516363;
+}
+
+footer .left {
+    float: left;
+}
+
+footer .right {
+    float: right;
+    text-align: right;
+}

@@ -24,16 +24,33 @@
         src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.4/dist/typeahead.bundle.min.js">
 </script>
 <script type="text/javascript">
-$('.groups').typeahead({
+ var substringMatcher = function(strs) {
+   return function findMatches(q, cb) {
+     var matches, substrRegex;
+     matches = [];
+     substrRegex = new RegExp(q, 'i');
+     $.each(strs, function(i, str) {
+       if (substrRegex.test(str)) {
+         matches.push({ value: str });
+       }
+     });
+
+     cb(matches);
+   };
+ };
+
+ $('.groups').typeahead(null, {
    name: 'groups',
    limit: 10,
-   local: [
-     {% for name in groups %}"{{ name }}",{% endfor %}]});
-$('.teachers').typeahead({
+   source: substringMatcher(
+     [{% for name in groups %}"{{ name }}",{% endfor %}]
+   )});
+ $('.teachers').typeahead(null, {
    name: 'teachers',
    limit: 10,
-   local: [
-     {% for name in teachers %}"{{ name }}",{% endfor %}]});
+   source: substringMatcher(
+     [{% for name in teachers %}"{{ name }}",{% endfor %}]
+   )});
 </script>
 
 {% endblock %}

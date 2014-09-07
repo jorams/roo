@@ -10,6 +10,7 @@
 (defmacro render-template (template &rest template-arguments)
   (with-gensyms (stream)
    `(let ((,stream (make-string-output-stream)))
-      (djula:render-template* ,template ,stream ,@template-arguments))))
+      (djula:render-template* ,template ,stream ,@template-arguments)
+      (get-output-stream-string ,stream))))
 
 (deftemplate +index+ "index.html")

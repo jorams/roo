@@ -27,6 +27,7 @@
                #:clack #:ningle)
   :components ((:file "util")
                (:module "parser"
-                :components ((:file "package")))
+                :components ((:file "package")
+                             (:file "parser")))
                (:module "site"
                 :components ((:file "package")))))

@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{% block title %}</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <meta name="viewport" content="initial-scale=1">
+  </head>
+  <body>
+    <header>
+      <a href="/"><img class="logo" src="/static/logo.svg"></a>
+    </header>
+    {% block content %}
+    {% endblock %}
+    <footer>
+      <span class="left">
+        {% block footer %}
+        {% endblock %}
+      </span>
+      <span class="right">Roo is
+        <a href="https://github.com/jorams/roo">open source</a></span>
+    </footer>
+  </body>
+</html>

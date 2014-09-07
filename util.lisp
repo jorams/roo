@@ -2,9 +2,12 @@
   (:use #:cl)
   (:export #:*config*
            #:config
-           #:load-configuration))
+           #:load-configuration
+           #:group-by))
 
 (in-package #:roo.util)
+
+;;; Configuration
 
 (defvar *config* nil
   "Global configuration store for Roo. Currently a plist.")
@@ -36,3 +39,13 @@ CONFIG is the configuration variable it should be read from.
 
 Returns the configuration variable, NIL if it doesn't exist."
   (getf config name))
+
+
+;;; Miscellaneous
+
+(defun group-by (list key &optional (hash-test #'eql))
+  ;; adjust the table test and my-key functions as necessary.
+  (loop with table = (make-hash-table :test hash-test)
+        for object in list
+        do (push object (gethash (funcall key object) table))
+        finally (return (alexandria:hash-table-values table))))

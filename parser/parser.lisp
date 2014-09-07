@@ -197,9 +197,7 @@
                     (gethash "elements" json))
             *departments*)))
 
-(defun fetch-timetable (uri element date
-                        &key
-                          (type (type-of element)))
+(defun fetch-timetable (uri element date &key (type (type-of element)))
   (check-type type schedule-element-name)
   (let* ((json (fetch-json
                 uri
@@ -216,8 +214,7 @@
             (gethash (princ-to-string (id element))
                      (gethash "elementPeriods"
                               (gethash "data"
-                                       (gethash "result" json)))))
-    ))
+                                       (gethash "result" json)))))))
 
 (defun update-groups (uri)
   (mapcar (lambda (g) (setf (gethash (id g) *groups*) g))

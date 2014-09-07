@@ -29,4 +29,5 @@
    (asdf:system-relative-pathname :roo "site/static/")))
 
 (define-route index ("")
-  (render-template +index+))
+  (render-template +index+ :groups *group-names*
+                           :teachers *teacher-names*))
